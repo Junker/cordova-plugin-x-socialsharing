@@ -12,10 +12,6 @@
       "web"
     ]
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin.git"
-  },
   "keywords": [
     "Social",
     "Share",
