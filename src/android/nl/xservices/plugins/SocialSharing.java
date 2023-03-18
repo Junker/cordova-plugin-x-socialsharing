@@ -271,7 +271,14 @@ public class SocialSharing extends CordovaPlugin {
         final boolean hasMultipleAttachments = files.length() > 1;
         final Intent sendIntent = new Intent(hasMultipleAttachments ? Intent.ACTION_SEND_MULTIPLE : Intent.ACTION_SEND);
         final Intent receiverIntent = new Intent(cordova.getActivity().getApplicationContext(), ShareChooserPendingIntent.class);
-        final PendingIntent pendingIntent = PendingIntent.getBroadcast(cordova.getActivity().getApplicationContext(), 0, receiverIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+         // final PendingIntent pendingIntent = PendingIntent.getBroadcast(cordova.getActivity().getApplicationContext(), 0, receiverIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int pendingIntentValueFLAG = 0; 
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) { 
+          pendingIntentValueFLAG = PendingIntent.FLAG_MUTABLE; 
+        } else { 
+          pendingIntentValueFLAG = PendingIntent.FLAG_UPDATE_CURRENT; 
+        } 
+        final PendingIntent pendingIntent = PendingIntent.getBroadcast(cordova.getActivity().getApplicationContext(), 0, receiverIntent, pendingIntentValueFLAG);
         sendIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 
         try {
@@ -338,7 +345,11 @@ public class SocialSharing extends CordovaPlugin {
             if (peek) {
               callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
             } else {
-              sendIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+              // Android 13 blocks intents that don't match with the receiving app intent-filters
+              // In order to prevent ActivityNotFoundException the category is added to the intent only on Android 12L and below
+              if (Build.VERSION.SDK_INT < 33) {
+                sendIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+              }
               sendIntent.setComponent(new ComponentName(activity.applicationInfo.packageName,
                   passedActivityName != null ? passedActivityName : activity.name));
 
